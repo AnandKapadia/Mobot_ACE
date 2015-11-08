@@ -4,7 +4,7 @@
 
 #### Features (by priority):
 
-1. Wirelessly Retrive Values
+1. Wirelessly Retrieve Values
   * Arduino presents a set of key-value pairs
   * Values can be requested by the PC by name/index at any time
   * Values can be streamed at intervals or when updated
