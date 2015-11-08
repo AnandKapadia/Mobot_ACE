@@ -2,7 +2,7 @@
 
 ## Mobot Control System Requirements
 
-#### Features (priority):
+#### Features (by priority):
 
 1. Wirelessly Retrive Values
   * Arduino presents a set of key-value pairs
