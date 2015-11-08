@@ -104,6 +104,22 @@ Configuration finished.
 mobotsh>
 ```
 
+2. Obtain battery level from ADC
+ * We dedicate an ADC pin to reading the battery level
+ * We define a key/value pair called "Battery Level". This is kept updated by the
+ main loop at intervals. It is obtained by sending "Request Value n" packets.
+ * Alternatively, we create a new packet called "Get Battery Level" that triggers
+ an ADC reading and does not use the key/value table. This is an exception, not the rule
+ since the ADC should not need to be used continuously.
+ * On the other hand, if the key/value table is used we could output the battery level in the .csv and plot it as a function of time. This would be a really useful plot!
+
+```
+mobotsh> battery
+Requesting battery level...
+6.7V (85%)
+mobotsh>
+```
+
 ## Configuration
 
 ####XBee Config.
