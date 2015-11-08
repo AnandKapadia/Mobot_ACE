@@ -38,7 +38,7 @@ Communication is full-duplex (separate RX and TX lines, two way).
     * Mobot responds with the value at array index n.
   4. "Set value n to x" packet
     * Mobot sets A[n] = x.
-    * A confirmation packet is sent in response.
+    * A confirmation packet is sent in response (may not be wise for frequently updated values, such as the manual control parameters).
   5. "Configure Test Output" packet
     * The PC sends the indexes of the values to be streamed during a test.
     * Once the test is started, the mobot outputs this subset of values
