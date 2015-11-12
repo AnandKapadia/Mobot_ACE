@@ -1,5 +1,12 @@
 # Mobot_ACE
 
+## Bill of Materials
+
+The Bill of Materials (BOM) shall be updated with whatever parts
+were purchased including prototyping and final build. bom.ods is
+in the OpenDocument format so you'll need libreoffice or openoffice,
+etc. (Does Word support it yet? Probably. Don't know, I don't use it.) 
+
 ## Mobot Control System Requirements
 
 #### Features (by priority):
