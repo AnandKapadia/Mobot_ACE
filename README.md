@@ -131,12 +131,15 @@ mobotsh>
 
 ####XBee Config.
 
-PanID: DEAD
-Baud rate: 115200 [7]
+Channel: 0xD
+PanID: 0xDEAD
+Baud rate: 9600 [3]
 Xbee 4414: 
-  * My Address 1
-  * Destination Address 2
-Xbee 4014 
   * My Address 2
   * Destination Address 1
+  * NI Mobot_2
+Xbee 4014 
+  * My Address 1
+  * Destination Address 2
+  * NI Mobot_1
   
