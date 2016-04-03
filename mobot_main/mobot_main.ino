@@ -30,6 +30,7 @@ boolean changeReady = false;
 boolean readReady = false;
 int strStart = 0;
 int strEnd = 0;
+int count = 0;
 
 int testInt = 0;
 char testChar = 'a';
@@ -67,16 +68,16 @@ void initialize()
   pinMode(STOP, INPUT);
   pinMode(START, INPUT);
   STEERING.attach(4, 1000, 2000);
-  THROTTLE.attach(7, 1000, 2000);
+  THROTTLE.attach(7, 520, 2370);
   pinMode(13, OUTPUT);  // use the p13 LED as debugging
 
 }
 
 void setDefaults()
 {
-  start_state = false;
-  digitalWrite(MANUAL_MODE, 0);
-  manual_mode_state = 0;
+  start_state = 0;
+  digitalWrite(MANUAL_MODE, 1);
+  manual_mode_state = 1;
   STEERING.write(90);
   THROTTLE.write(90);
 }
@@ -93,19 +94,29 @@ void loop() {
     handleRead();
     readReady = false;
   }
-  handleStartState();
+  //handleStartState();
   autonomous();
+  count++;
   // The LED will 'echo' the button 
 }
 
 void autonomous()
 {
-  if(start_state)
+  Serial.print(manual_mode_state);
+  Serial.print("  ");
+  Serial.print(start_state);
+  Serial.print("  ");
+  if(start_state == 1)
   {
-    steering = (int)(90*sin(2.0*PI*micros()/1000000)) + 90;
-    Serial.println(90);
-    STEERING.write(90);
+    steering = count%180;
+    
   }
+  else{
+    steering = 90;
+  }
+  Serial.println(steering);
+  STEERING.write(180-steering);
+  //delay(100);
 }
 
 void handleStartState() 
@@ -157,6 +168,10 @@ void handleRead() {
   else if (variableToRead.equals("manual_mode_state")) {
     mySerial.print("The variable manual_mode_state has value: ");
     mySerial.println(manual_mode_state);
+  }  
+  else if (variableToRead.equals("steering")) {
+    mySerial.print("The variable steering has value: ");
+    mySerial.println(steering);
   }
   else {
       mySerial.println("Not a valid or handled variable");
@@ -184,6 +199,9 @@ void handleChange() {
   else if (variableToChange.equals("START")) {
     start_state = 1;
     variableToChange = "start_state";
+  }
+  else if (variableToChange.equals("steering")) {
+    steering = valueToChange.toInt();
   }
   else {
       mySerial.println("Not a valid or handled variable");
