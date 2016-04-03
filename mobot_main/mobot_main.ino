@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include "Adafruit_MCP23008.h"
 #include <SoftwareSerial.h>
+#include <Servo.h>
 // Basic pin reading and pullup test for the mcp_front23008 I/O expander
 // public domain!
 
@@ -13,6 +14,11 @@
 // Input #0 is on pin 10 so connect a button or switch from there to ground
 
 #define MANUAL_MODE 8
+#define STOP A2
+#define START A3
+
+Servo STEERING;
+Servo THROTTLE;
 
 SoftwareSerial mySerial(11, 10); // RX, TX
 String variableToChange = "";
@@ -29,6 +35,9 @@ int testInt = 0;
 char testChar = 'a';
 String testString = "hi";
 int manual_mode_state = 0;
+int throttle = 0;
+int steering = 0;
+int start_state = 0;
 
 Adafruit_MCP23008 mcp_front, mcp_back;
 
@@ -36,6 +45,13 @@ int back_pins[8] = {0, 1, 2, 3, 5, 6, 7, 4};
 int front_pins[8] = {0, 1, 2, 3, 4, 5, 6, 7};
 
 void setup() {  
+  initialize();
+  setDefaults();
+  mySerial.println("Serial Communications Online");
+}
+
+void initialize()
+{
   mcp_front.begin(1);      // use default address 0
   mcp_back.begin(0);
   Serial.begin(9600);
@@ -48,8 +64,21 @@ void setup() {
     mcp_back.pullUp(i, HIGH);  // turn on a 100K pullup internally
   }
   pinMode(MANUAL_MODE, OUTPUT);
+  pinMode(STOP, INPUT);
+  pinMode(START, INPUT);
+  STEERING.attach(4, 1000, 2000);
+  THROTTLE.attach(7, 1000, 2000);
   pinMode(13, OUTPUT);  // use the p13 LED as debugging
-  mySerial.println("Serial Communications Online");
+
+}
+
+void setDefaults()
+{
+  start_state = false;
+  digitalWrite(MANUAL_MODE, 0);
+  manual_mode_state = 0;
+  STEERING.write(90);
+  THROTTLE.write(90);
 }
 
 void loop() {
@@ -64,18 +93,29 @@ void loop() {
     handleRead();
     readReady = false;
   }
-  for(int i = 0; i < 8; i++)
-  {
-    Serial.print(mcp_front.digitalRead(front_pins[i]));
-    Serial.print(" ");
-  }  
-  for(int i = 0; i < 8; i++)
-  {
-    Serial.print(mcp_back.digitalRead(back_pins[i]));
-    Serial.print(" ");
-  }
-  Serial.println();
+  handleStartState();
+  autonomous();
   // The LED will 'echo' the button 
+}
+
+void autonomous()
+{
+  if(start_state)
+  {
+    steering = (int)(90*sin(2.0*PI*micros()/1000000)) + 90;
+    Serial.println(90);
+    STEERING.write(90);
+  }
+}
+
+void handleStartState() 
+{
+  if(digitalRead(STOP) == 0){
+    start_state = 0;
+  }
+  if(digitalRead(START) == 0){
+    start_state = 1;
+  }
 }
 
 void printSensorData()
@@ -110,6 +150,10 @@ void handleRead() {
   else if (variableToRead.equals("printSensorData")) {
     printSensorData();
   }
+  else if (variableToRead.equals("start_state")) {
+    mySerial.print("The variable start_state has value: ");
+    mySerial.println(start_state);
+  }
   else if (variableToRead.equals("manual_mode_state")) {
     mySerial.print("The variable manual_mode_state has value: ");
     mySerial.println(manual_mode_state);
@@ -132,6 +176,14 @@ void handleChange() {
   else if (variableToChange.equals("manual_mode_state")) {
     digitalWrite(MANUAL_MODE, valueToChange.toInt());
     manual_mode_state = valueToChange.toInt();
+  }
+  else if (variableToChange.equals("STOP")) {
+    start_state = 0;
+    variableToChange = "start_state";
+  }
+  else if (variableToChange.equals("START")) {
+    start_state = 1;
+    variableToChange = "start_state";
   }
   else {
       mySerial.println("Not a valid or handled variable");
