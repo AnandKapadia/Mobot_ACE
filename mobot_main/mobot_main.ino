@@ -89,6 +89,8 @@ void setDefaults()
   digitalWrite(STOPLED, HIGH);
   digitalWrite(MANUAL_MODE, 1);
   manual_mode_state = 1;
+  steering = 90;
+  throttle = 90;
   STEERING.write(90);
   THROTTLE.write(90);
   
@@ -185,7 +187,6 @@ int centered(int Min, int Max)
 void getLineFollowingValues()
 {
   //this method should set steering and throttle values
-  throttle = 110;
   int frontMax = getMax(front_values);
   int backMax = getMax(back_values);
   
@@ -296,6 +297,10 @@ void handleRead() {
   else if (variableToRead.equals("steering")) {
     mySerial.print("The variable steering has value: ");
     mySerial.println(steering);
+  }  
+  else if (variableToRead.equals("throttle")) {
+    mySerial.print("The variable throttle has value: ");
+    mySerial.println(throttle);
   }
   else {
       mySerial.println("Not a valid or handled variable");
@@ -330,6 +335,9 @@ void handleChange() {
   }
   else if (variableToChange.equals("steering")) {
     steering = valueToChange.toInt();
+  }  
+  else if (variableToChange.equals("throttle")) {
+    throttle = valueToChange.toInt();
   }
   else {
       mySerial.println("Not a valid or handled variable");
