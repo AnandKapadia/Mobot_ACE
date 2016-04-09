@@ -36,6 +36,7 @@ boolean readReady = false;
 int strStart = 0;
 int strEnd = 0;
 int count = 0;
+int steeringFactor = 10;
 
 int testInt = 0;
 char testChar = 'a';
@@ -44,6 +45,10 @@ int manual_mode_state = 0;
 int throttle = 0;
 int steering = 0;
 int start_state = 0;
+int prevFrontMax = 0;
+int prevBackMax = 0;
+int prevFrontMin = 0;
+int prevBackMin = 0;
 
 Adafruit_MCP23008 mcp_front, mcp_back;
 
@@ -204,6 +209,14 @@ void getLineFollowingValues()
   Serial.print(backMin);
   Serial.println(")");
   */
+  if(frontMax == -1) frontMax = prevFrontMax;
+  else prevFrontMax = frontMax;
+  if(backMax == -1) backMax = prevBackMax;
+  else prevBackMax = backMax;
+  if(frontMin == -1) frontMin = prevFrontMin;
+  else prevFrontMin = frontMin;
+  if(backMin == -1) backMin = prevBackMin;
+  else prevBackMin = backMin;
   
   //Go straight
   if (centered(frontMin, frontMax) && centered(backMin, backMax)){
@@ -212,16 +225,17 @@ void getLineFollowingValues()
   }
   else if (frontMin < backMin) { //turn left
     Serial.println("turn l");
-    steering = 90 - ((backMax - frontMin) * 10);
+    steering = 90 - ((backMax - frontMin) * steeringFactor);
   }
   else if (frontMax > backMax) { //turn right     
     Serial.println("turn r");
-    steering = 90 + ((frontMax - backMin) * 10);
+    steering = 90 + ((frontMax - backMin) * steeringFactor);
   }
   else{
     Serial.println("--");
     steering = 90;
   }
+  
 }
 
 void getSensorValues()
@@ -302,6 +316,10 @@ void handleRead() {
     mySerial.print("The variable throttle has value: ");
     mySerial.println(throttle);
   }
+  else if (variableToRead.equals("steeringFactor")) {
+    mySerial.print("The variable throttle has value: ");
+    mySerial.println(steeringFactor);
+  }
   else {
       mySerial.println("Not a valid or handled variable");
   }
@@ -338,6 +356,9 @@ void handleChange() {
   }  
   else if (variableToChange.equals("throttle")) {
     throttle = valueToChange.toInt();
+  }
+  else if (variableToChange.equals("steeringFactor")) {
+    steeringFactor = valueToChange.toInt();
   }
   else {
       mySerial.println("Not a valid or handled variable");

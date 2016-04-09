@@ -29,5 +29,14 @@
     <packet name="packet_7">
       <payload>28287772697465292953544F503D3D2B2B</payload>
     </packet>
+    <packet name="packet_8">
+      <payload>2828777269746529297468726F74746C653D3D39302B2B</payload>
+    </packet>
+    <packet name="packet_9">
+      <payload>2828777269746529297374656572696E67466163746F723D3D36302B2B</payload>
+    </packet>
+    <packet name="packet_10">
+      <payload>2828777269746529297468726F74746C653D3D3130352B2B</payload>
+    </packet>
   </packets_list>
 </data>
