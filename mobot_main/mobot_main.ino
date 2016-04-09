@@ -13,9 +13,14 @@
 
 // Input #0 is on pin 10 so connect a button or switch from there to ground
 
-#define MANUAL_MODE 8
+#define STOPLED A0
+#define STARTLED A1
 #define STOP A2
 #define START A3
+#define STEERINGPIN 4
+#define THROTTLEPIN 7
+#define MANUAL_MODE 8
+
 
 Servo STEERING;
 Servo THROTTLE;
@@ -70,19 +75,23 @@ void initialize()
   pinMode(MANUAL_MODE, OUTPUT);
   pinMode(STOP, INPUT);
   pinMode(START, INPUT);
-  STEERING.attach(4, 1000, 2000);
-  THROTTLE.attach(7, 520, 2370);
+  pinMode(STOPLED, OUTPUT);
+  pinMode(STARTLED, OUTPUT);
+  STEERING.attach(STEERINGPIN, 1000, 2000);
+  THROTTLE.attach(THROTTLEPIN, 520, 2370);
   pinMode(13, OUTPUT);  // use the p13 LED as debugging
-
 }
 
 void setDefaults()
 {
   start_state = 0;
+  digitalWrite(STARTLED, LOW);
+  digitalWrite(STOPLED, HIGH);
   digitalWrite(MANUAL_MODE, 1);
   manual_mode_state = 1;
   STEERING.write(90);
   THROTTLE.write(90);
+  
 }
 
 void loop() {
@@ -126,10 +135,18 @@ void autonomous()
 
 void lineFollowing()
 {
-  getSensorValues();
-  getLineFollowingValues();
-  STEERING.write(steering);
-  THROTTLE.write(throttle);
+  if(start_state)
+  {
+    getSensorValues();
+    getLineFollowingValues();
+    STEERING.write(steering);
+    THROTTLE.write(throttle);
+  }
+  else
+  {
+    STEERING.write(90);
+    THROTTLE.write(90);
+  }
 }
 
 void getLineFollowingValues()
@@ -156,9 +173,13 @@ void handleStartState()
 {
   if(digitalRead(STOP) == 0){
     start_state = 0;
+    digitalWrite(STARTLED, LOW);
+    digitalWrite(STOPLED, HIGH);
   }
   if(digitalRead(START) == 0){
     start_state = 1;
+    digitalWrite(STARTLED, HIGH);
+    digitalWrite(STOPLED, LOW);
   }
 }
 
@@ -227,10 +248,14 @@ void handleChange() {
   }
   else if (variableToChange.equals("STOP")) {
     start_state = 0;
+    digitalWrite(STARTLED, LOW);
+    digitalWrite(STOPLED, HIGH);
     variableToChange = "start_state";
   }
   else if (variableToChange.equals("START")) {
     start_state = 1;
+    digitalWrite(STARTLED, HIGH);
+    digitalWrite(STOPLED, LOW);
     variableToChange = "start_state";
   }
   else if (variableToChange.equals("steering")) {
