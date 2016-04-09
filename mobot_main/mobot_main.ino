@@ -149,23 +149,65 @@ void lineFollowing()
   }
 }
 
+int getMin(int array[])
+{
+  for(int i = 0; i <= 7; i++) {
+     if (array[i] = 1) {
+         return i;
+     }
+  }
+}
+
+int getMax(int array[])
+{
+  int Max = 0;
+  for(int i = 0; i <= 7; i++) {
+     if (array[i] = 1) {
+         Max = i;
+     }
+  }
+  return Max;
+}
+
+int centered(int Min, int Max)
+{
+   return (3 <= Min && Min <= 4 &&
+          3 <= Max && Max <= 4);
+}
+
 void getLineFollowingValues()
 {
   //this method should set steering and throttle values
-  steering = 90;
   throttle = 90;
+  int frontMax = getMax(front_values);
+  int backMax = getMax(back_values);
+  
+  int frontMin = getMin(front_values);
+  int backMin = getMin(back_values);
+  
+  //Go straight
+  if (centered(frontMin, frontMax) && centered(backMin, backMax)) steering = 90;
+  
+  if (frontMin < backMin) { //turn left
+     steering = 90 - ((backMax - frontMin) * 10);
+  }
+  
+  if (frontMax > backMax) { //turn right
+     steering = 90 + ((frontMax - backMin) * 10);
+  }
+
 }
 
 void getSensorValues()
 {
   for(int i = 0; i < 8; i++)
   {
-    front_values[i] = (mcp_front.digitalRead(front_pins[i]));
+    front_values[i] = !(mcp_front.digitalRead(front_pins[i]));
     
   }  
   for(int i = 0; i < 8; i++)
   {
-    back_values[i] = (mcp_back.digitalRead(back_pins[i]));
+    back_values[i] = !(mcp_back.digitalRead(back_pins[i]));
   }
 }
 
@@ -187,12 +229,12 @@ void printSensorData()
 {
   for(int i = 0; i < 8; i++)
   {
-    mySerial.print(mcp_front.digitalRead(front_pins[i]));
+    mySerial.print(!mcp_front.digitalRead(front_pins[i]));
     mySerial.print(" ");
   }  
   for(int i = 0; i < 8; i++)
   {
-    mySerial.print(mcp_back.digitalRead(back_pins[i]));
+    mySerial.print(!mcp_back.digitalRead(back_pins[i]));
     mySerial.print(" ");
   }
   mySerial.println();
