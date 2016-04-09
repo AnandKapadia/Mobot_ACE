@@ -47,7 +47,7 @@ int start_state = 0;
 
 Adafruit_MCP23008 mcp_front, mcp_back;
 
-int back_pins[8] = {0, 1, 2, 3, 5, 6, 7, 4};
+int back_pins[8] = {4, 7, 6, 5, 3, 2, 1, 0};
 int front_pins[8] = {0, 1, 2, 3, 4, 5, 6, 7};
 
 int front_values[8] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -107,6 +107,7 @@ void loop() {
     readReady = false;
   }
   handleStartState();
+  getSensorValues();
   //autonomous();
   lineFollowing();
   count++;
@@ -129,21 +130,26 @@ void autonomous()
     steering = 90;
   }
   Serial.println(steering);
+  STEERING.write(180-steering);
   THROTTLE.write(180-steering);
   //delay(100);
 }
 
 void lineFollowing()
 {
-  if(start_state)
+  if(start_state == 1)
   {
-    getSensorValues();
     getLineFollowingValues();
+    if(steering > 180) steering = 180;
+    if(throttle > 180) throttle = 180;
+    if(steering < 0) steering = 0;
+    if(throttle < 0) throttle = 0;
     STEERING.write(steering);
     THROTTLE.write(throttle);
   }
   else
   {
+    Serial.println("stopped state");
     STEERING.write(90);
     THROTTLE.write(90);
   }
@@ -152,17 +158,18 @@ void lineFollowing()
 int getMin(int array[])
 {
   for(int i = 0; i <= 7; i++) {
-     if (array[i] = 1) {
+     if (array[i] == 1) {
          return i;
      }
   }
+  return -1;
 }
 
 int getMax(int array[])
 {
-  int Max = 0;
+  int Max = -1;
   for(int i = 0; i <= 7; i++) {
-     if (array[i] = 1) {
+     if (array[i] == 1) {
          Max = i;
      }
   }
@@ -178,36 +185,57 @@ int centered(int Min, int Max)
 void getLineFollowingValues()
 {
   //this method should set steering and throttle values
-  throttle = 90;
+  throttle = 110;
   int frontMax = getMax(front_values);
   int backMax = getMax(back_values);
   
   int frontMin = getMin(front_values);
   int backMin = getMin(back_values);
   
+  /*
+  Serial.print("front(");
+  Serial.print(frontMax);
+  Serial.print(",");
+  Serial.print(frontMin);
+  Serial.print(") back(");
+  Serial.print(backMax);
+  Serial.print(",");
+  Serial.print(backMin);
+  Serial.println(")");
+  */
+  
   //Go straight
-  if (centered(frontMin, frontMax) && centered(backMin, backMax)) steering = 90;
-  
-  if (frontMin < backMin) { //turn left
-     steering = 90 - ((backMax - frontMin) * 10);
+  if (centered(frontMin, frontMax) && centered(backMin, backMax)){
+    Serial.println("centered");
+    steering = 90;
   }
-  
-  if (frontMax > backMax) { //turn right
-     steering = 90 + ((frontMax - backMin) * 10);
+  else if (frontMin < backMin) { //turn left
+    Serial.println("turn l");
+    steering = 90 - ((backMax - frontMin) * 10);
   }
-
+  else if (frontMax > backMax) { //turn right     
+    Serial.println("turn r");
+    steering = 90 + ((frontMax - backMin) * 10);
+  }
+  else{
+    Serial.println("--");
+    steering = 90;
+  }
 }
 
 void getSensorValues()
 {
   for(int i = 0; i < 8; i++)
   {
-    front_values[i] = !(mcp_front.digitalRead(front_pins[i]));
-    
+    front_values[i] = (mcp_front.digitalRead(front_pins[i]));   
+    front_values[i] = front_values[i] ? 0 : 1;
+    delay(1);
   }  
   for(int i = 0; i < 8; i++)
   {
-    back_values[i] = !(mcp_back.digitalRead(back_pins[i]));
+    back_values[i] = (mcp_back.digitalRead(back_pins[i]));
+    back_values[i] = back_values[i] ? 0 : 1;
+    delay(1);
   }
 }
 
@@ -229,12 +257,12 @@ void printSensorData()
 {
   for(int i = 0; i < 8; i++)
   {
-    mySerial.print(!mcp_front.digitalRead(front_pins[i]));
+    mySerial.print(front_values[i]);
     mySerial.print(" ");
   }  
   for(int i = 0; i < 8; i++)
   {
-    mySerial.print(!mcp_back.digitalRead(back_pins[i]));
+    mySerial.print(back_values[i]);
     mySerial.print(" ");
   }
   mySerial.println();
