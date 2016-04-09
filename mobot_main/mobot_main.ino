@@ -45,6 +45,9 @@ Adafruit_MCP23008 mcp_front, mcp_back;
 int back_pins[8] = {0, 1, 2, 3, 5, 6, 7, 4};
 int front_pins[8] = {0, 1, 2, 3, 4, 5, 6, 7};
 
+int front_values[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+int back_values[8]  = {0, 0, 0, 0, 0, 0, 0, 0};
+
 void setup() {  
   initialize();
   setDefaults();
@@ -94,14 +97,16 @@ void loop() {
     handleRead();
     readReady = false;
   }
-  //handleStartState();
-  autonomous();
+  handleStartState();
+  //autonomous();
+  lineFollowing();
   count++;
   // The LED will 'echo' the button 
 }
 
 void autonomous()
 {
+  
   Serial.print(manual_mode_state);
   Serial.print("  ");
   Serial.print(start_state);
@@ -115,8 +120,36 @@ void autonomous()
     steering = 90;
   }
   Serial.println(steering);
-  STEERING.write(180-steering);
+  THROTTLE.write(180-steering);
   //delay(100);
+}
+
+void lineFollowing()
+{
+  getSensorValues();
+  getLineFollowingValues();
+  STEERING.write(steering);
+  THROTTLE.write(throttle);
+}
+
+void getLineFollowingValues()
+{
+  //this method should set steering and throttle values
+  steering = 90;
+  throttle = 90;
+}
+
+void getSensorValues()
+{
+  for(int i = 0; i < 8; i++)
+  {
+    front_values[i] = (mcp_front.digitalRead(front_pins[i]));
+    
+  }  
+  for(int i = 0; i < 8; i++)
+  {
+    back_values[i] = (mcp_back.digitalRead(back_pins[i]));
+  }
 }
 
 void handleStartState() 
