@@ -43,6 +43,7 @@ char testChar = 'a';
 String testString = "hi";
 int manual_mode_state = 0;
 int throttle = 0;
+int throttleNew = 0;
 int steering = 0;
 int start_state = 0;
 float prevFrontVal = 0;
@@ -155,7 +156,7 @@ void lineFollowing()
     if(steering < 0) steering = 0;
     if(throttle < 0) throttle = 0;
     STEERING.write(steering);
-    THROTTLE.write(throttle);
+    THROTTLE.write(throttleNew);
   }
   else
   {
@@ -201,6 +202,7 @@ void getLineFollowingValues()
   
   //Alpha should be larger than beta
   steering = int (90 - (frontVal * alpha) - ((frontVal - backVal) * beta));
+  throttleNew = throttle + 
   
 }
 
