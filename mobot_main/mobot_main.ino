@@ -37,7 +37,7 @@ int strStart = 0;
 int strEnd = 0;
 int count = 0;
 int steeringFactor = 10;
-
+int STARTDELAY = 5000;
 int testInt = 0;
 char testChar = 'a';
 String testString = "hi";
@@ -52,8 +52,8 @@ int prevBackMin = 0;
 
 Adafruit_MCP23008 mcp_front, mcp_back;
 
-int back_pins[8] = {4, 7, 6, 5, 3, 2, 1, 0};
-int front_pins[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+int back_pins[8] = {0,1,2,3,5,6,7,4};//{4, 7, 6, 5, 3, 2, 1, 0};
+int front_pins[8] = {7, 6, 5, 4, 3, 2, 1, 0};
 
 int front_values[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 int back_values[8]  = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -263,9 +263,10 @@ void handleStartState()
     digitalWrite(STOPLED, HIGH);
   }
   if(digitalRead(START) == 0){
-    start_state = 1;
     digitalWrite(STARTLED, HIGH);
     digitalWrite(STOPLED, LOW);
+    delay(STARTDELAY);
+    start_state = 1;
   }
 }
 
