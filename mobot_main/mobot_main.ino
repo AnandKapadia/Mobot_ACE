@@ -167,7 +167,7 @@ void lineFollowing()
   }
 }
 
-
+/* Computes the center of mass of the triggered sensors. */
 float getVal(int array[])
 {
   float val = 0;
@@ -179,7 +179,8 @@ float getVal(int array[])
     }
   }
   
-  if (numVal == 0) {
+  /* use previous value if lost line or sensors flooded */
+  if (numVal == 0 || numVal == 8) {
     return -1;
   }
   else {
