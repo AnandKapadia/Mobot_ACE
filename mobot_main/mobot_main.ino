@@ -2,16 +2,6 @@
 #include "Adafruit_MCP23008.h"
 #include <SoftwareSerial.h>
 #include <Servo.h>
-// Basic pin reading and pullup test for the mcp_front23008 I/O expander
-// public domain!
-
-// Connect pin #1 of the expander to Analog 5 (i2c clock)
-// Connect pin #2 of the expander to Analog 4 (i2c data)
-// Connect pins #3, 4 and 5 of the expander to ground (address selection)
-// Connect pin #6 and 18 of the expander to 5V (power and reset disable)
-// Connect pin #9 of the expander to ground (common ground)
-
-// Input #0 is on pin 10 so connect a button or switch from there to ground
 
 #define STOPLED A0
 #define STARTLED A1
@@ -20,7 +10,6 @@
 #define STEERINGPIN 4
 #define THROTTLEPIN 7
 #define MANUAL_MODE 8
-
 
 Servo STEERING;
 Servo THROTTLE;
@@ -35,7 +24,6 @@ boolean changeReady = false;
 boolean readReady = false;
 int strStart = 0;
 int strEnd = 0;
-int count = 0;
 int steeringFactor = 10;
 int STARTDELAY = 5000;
 int testInt = 0;
@@ -65,7 +53,7 @@ int back_values[8]  = {0, 0, 0, 0, 0, 0, 0, 0};
 void setup() {  
   initialize();
   setDefaults();
-  //mySerial.println("Serial Communications Online");
+  mySerial.println("Serial Communications Online");
 }
 
 void initialize()
@@ -119,32 +107,7 @@ void loop() {
   }
   handleStartState();
   getSensorValues();
-  //autonomous();
   lineFollowing();
-  count++;
-  // The LED will 'echo' the button 
-}
-
-void autonomous()
-{
-  /*
-  Serial.print(manual_mode_state);
-  Serial.print("  ");
-  Serial.print(start_state);
-  Serial.print("  ");
-  */
-  if(start_state == 1)
-  {
-    steering = count%180;
-    
-  }
-  else{
-    steering = 90;
-  }
-  //Serial.println(steering);
-  STEERING.write(180-steering);
-  THROTTLE.write(180-steering);
-  //delay(100);
 }
 
 void lineFollowing()
