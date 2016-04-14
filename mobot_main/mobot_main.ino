@@ -240,17 +240,18 @@ void getLineFollowingValues()
 
 void getSensorValues()
 {
+  uint8_t frontByte = mcp_front.readGPIO();
+
   for(int i = 0; i < 8; i++)
   {
-    front_values[i] = (mcp_front.digitalRead(front_pins[i]));   
-    front_values[i] = front_values[i] ? 0 : 1;
-    delay(1);
+    front_values[i] = !(0x01 & (frontByte >> front_pins[i]));
   }  
+
+  uint8_t rearByte = mcp_back.readGPIO();
+
   for(int i = 0; i < 8; i++)
   {
-    back_values[i] = (mcp_back.digitalRead(back_pins[i]));
-    back_values[i] = back_values[i] ? 0 : 1;
-    delay(1);
+    back_values[i] = !(0x01 & (rearByte >> back_pins[i]));
   }
 }
 
