@@ -21,6 +21,7 @@
 #define THROTTLEPIN 7
 #define MANUAL_MODE 8
 
+#define PROFILE_LEN 10
 
 Servo STEERING;
 Servo THROTTLE;
@@ -62,9 +63,26 @@ int front_pins[8] = {7, 6, 5, 4, 3, 2, 1, 0};
 int front_values[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 int back_values[8]  = {0, 0, 0, 0, 0, 0, 0, 0};
 
+/* track profile entry structure */
+typedef struct {
+  int steerVal;
+  int throttleVal;
+  long msec;
+  bool lineFollowing;
+} profile_entry;
+
+/* global track profile */
+profile_entry trackProfile[PROFILE_LEN];
+
+/* profile counter */
+int trackSegment = 0;
+
+long profileTimer = 0;
+
 void setup() {  
   initialize();
   setDefaults();
+  makeProfile();
   //mySerial.println("Serial Communications Online");
 }
 
@@ -105,6 +123,35 @@ void setDefaults()
   
 }
 
+/* Creates the profile defining the mobot's behavior for
+ *  each track segment.
+ */
+void makeProfile()
+{
+  /* initialize */
+  memset((void *) trackProfile, 0, PROFILE_LEN * sizeof(profile_entry));
+  
+  /* line follow to 2nd gate */
+  trackProfile[0].lineFollowing = true;
+  trackProfile[0].msec = 15000;
+
+  /* hardcode 1st hill */
+  trackProfile[1].lineFollowing = false;
+  trackProfile[1].msec = 5000;
+  trackProfile[1].steerVal = 90;
+  trackProfile[1].throttleVal = 140;
+
+  /* line follow after 1st hill */
+  trackProfile[2].lineFollowing = true;
+  trackProfile[2].msec = 100000;
+
+  /* end of track (add more entries?) */
+
+
+  /* start profile timer */
+  profileTimer = millis();
+}
+
 void loop() {
   if (mySerial.available()) { // only data of form ((write))variable==value++ or 
     handleSerial();           // ((read))variable++ will be read by this function
@@ -120,7 +167,8 @@ void loop() {
   handleStartState();
   getSensorValues();
   //autonomous();
-  lineFollowing();
+  doProfile();
+  //lineFollowing();
   count++;
   // The LED will 'echo' the button 
 }
@@ -147,10 +195,46 @@ void autonomous()
   //delay(100);
 }
 
+void doProfile()
+{
+  if(start_state == 1) {
+  profile_entry *entry = &trackProfile[trackSegment];
+
+  /* test for end of profile */
+  if(entry->msec == 0)
+  {
+    start_state = 0;
+    manual_mode_state = 1;
+    digitalWrite(STARTLED, LOW);
+    digitalWrite(STOPLED, HIGH);
+  }
+  
+  /* test for end of entry */
+  if(millis() - profileTimer >= entry->msec)
+  {
+     trackSegment++;
+     profileTimer = millis();
+  }else
+  {
+    /* execute entry */
+    if(entry->lineFollowing)
+    {
+       lineFollowing();
+    }else{
+      STEERING.write(entry->steerVal);
+      THROTTLE.write(entry->throttleVal);
+    }
+  }
+  }else
+  {
+    trackSegment = 0;
+    STEERING.write(90);
+    THROTTLE.write(90);
+  }
+}
+
 void lineFollowing()
 {
-  if(start_state == 1)
-  {
     getLineFollowingValues();
     if(steering > 180) steering = 180;
     if(throttleNew > 180) throttleNew = 180;
@@ -158,13 +242,6 @@ void lineFollowing()
     if(throttleNew < 0) throttleNew = 0;
     STEERING.write(steering);
     THROTTLE.write(throttleNew);
-  }
-  else
-  {
-    //Serial.println("stopped state");
-    STEERING.write(90);
-    THROTTLE.write(90);
-  }
 }
 
 
