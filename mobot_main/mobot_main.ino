@@ -37,7 +37,7 @@ int strStart = 0;
 int strEnd = 0;
 int count = 0;
 int steeringFactor = 10;
-
+int STARTDELAY = 5000;
 int testInt = 0;
 char testChar = 'a';
 String testString = "hi";
@@ -45,15 +45,17 @@ int manual_mode_state = 0;
 int throttle = 0;
 int steering = 0;
 int start_state = 0;
-int prevFrontMax = 0;
-int prevBackMax = 0;
-int prevFrontMin = 0;
-int prevBackMin = 0;
-
+float prevFrontVal = 0;
+float prevBackVal = 0;
+float alpha = 10;
+float beta = 5;
+float frontVal = 0.0;
+float backVal = 0.0;
+  
 Adafruit_MCP23008 mcp_front, mcp_back;
 
-int back_pins[8] = {4, 7, 6, 5, 3, 2, 1, 0};
-int front_pins[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+int back_pins[8] = {0,1,2,3,5,6,7,4};//{4, 7, 6, 5, 3, 2, 1, 0};
+int front_pins[8] = {7, 6, 5, 4, 3, 2, 1, 0};
 
 int front_values[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 int back_values[8]  = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -61,14 +63,14 @@ int back_values[8]  = {0, 0, 0, 0, 0, 0, 0, 0};
 void setup() {  
   initialize();
   setDefaults();
-  mySerial.println("Serial Communications Online");
+  //mySerial.println("Serial Communications Online");
 }
 
 void initialize()
 {
   mcp_front.begin(1);      // use default address 0
   mcp_back.begin(0);
-  Serial.begin(9600);
+  //Serial.begin(9600);
   mySerial.begin(9600);
   for(int i = 0; i < 8; i++)
   {
@@ -123,11 +125,12 @@ void loop() {
 
 void autonomous()
 {
-  
+  /*
   Serial.print(manual_mode_state);
   Serial.print("  ");
   Serial.print(start_state);
   Serial.print("  ");
+  */
   if(start_state == 1)
   {
     steering = count%180;
@@ -136,7 +139,7 @@ void autonomous()
   else{
     steering = 90;
   }
-  Serial.println(steering);
+  //Serial.println(steering);
   STEERING.write(180-steering);
   THROTTLE.write(180-steering);
   //delay(100);
@@ -156,101 +159,65 @@ void lineFollowing()
   }
   else
   {
-    Serial.println("stopped state");
+    //Serial.println("stopped state");
     STEERING.write(90);
     THROTTLE.write(90);
   }
 }
 
-int getMin(int array[])
-{
-  for(int i = 0; i <= 7; i++) {
-     if (array[i] == 1) {
-         return i;
-     }
-  }
-  return -1;
-}
 
-int getMax(int array[])
+float getVal(int array[])
 {
-  int Max = -1;
+  float val = 0;
+  float numVal = 0;
   for(int i = 0; i <= 7; i++) {
-     if (array[i] == 1) {
-         Max = i;
-     }
+    if (array[i] == 1) {
+      val = val + (float) i;
+      numVal = numVal + (float) 1;
+    }
   }
-  return Max;
+  
+  if (numVal == 0) {
+    return -1;
+  }
+  else {
+    return (val / numVal) - 3.5;
+  }
 }
-
-int centered(int Min, int Max)
-{
-   return (3 <= Min && Min <= 4 &&
-          3 <= Max && Max <= 4);
-}
+  
 
 void getLineFollowingValues()
 {
+
+  
   //this method should set steering and throttle values
-  int frontMax = getMax(front_values);
-  int backMax = getMax(back_values);
+  frontVal = getVal(front_values);
+  backVal = getVal(back_values);
   
-  int frontMin = getMin(front_values);
-  int backMin = getMin(back_values);
+  if(frontVal == -1) frontVal = prevFrontVal;
+  else prevFrontVal = frontVal;
+  if(backVal == -1) backVal = prevBackVal;
+  else prevBackVal = backVal;
   
-  /*
-  Serial.print("front(");
-  Serial.print(frontMax);
-  Serial.print(",");
-  Serial.print(frontMin);
-  Serial.print(") back(");
-  Serial.print(backMax);
-  Serial.print(",");
-  Serial.print(backMin);
-  Serial.println(")");
-  */
-  if(frontMax == -1) frontMax = prevFrontMax;
-  else prevFrontMax = frontMax;
-  if(backMax == -1) backMax = prevBackMax;
-  else prevBackMax = backMax;
-  if(frontMin == -1) frontMin = prevFrontMin;
-  else prevFrontMin = frontMin;
-  if(backMin == -1) backMin = prevBackMin;
-  else prevBackMin = backMin;
-  
-  //Go straight
-  if (centered(frontMin, frontMax) && centered(backMin, backMax)){
-    Serial.println("centered");
-    steering = 90;
-  }
-  else if (frontMin < backMin) { //turn left
-    Serial.println("turn l");
-    steering = 90 - ((backMax - frontMin) * steeringFactor);
-  }
-  else if (frontMax > backMax) { //turn right     
-    Serial.println("turn r");
-    steering = 90 + ((frontMax - backMin) * steeringFactor);
-  }
-  else{
-    Serial.println("--");
-    steering = 90;
-  }
+  //Alpha should be larger than beta
+  steering = int (90 - (frontVal * alpha) - ((frontVal - backVal) * beta));
   
 }
 
 void getSensorValues()
 {
+  uint8_t frontByte = mcp_front.readGPIO();
+
   for(int i = 0; i < 8; i++)
   {
-    front_values[i] = (mcp_front.digitalRead(front_pins[i]));   
-    front_values[i] = front_values[i] ? 0 : 1;
-    delay(1);
+    front_values[i] = !(0x01 & (frontByte >> front_pins[i]));
   }  
+
+  uint8_t rearByte = mcp_back.readGPIO();
+
   for(int i = 0; i < 8; i++)
   {
-    back_values[i] = (mcp_back.digitalRead(back_pins[i]));
-    back_values[i] = back_values[i] ? 0 : 1;
-    delay(1);
+    back_values[i] = !(0x01 & (rearByte >> back_pins[i]));
   }
 }
 
@@ -262,9 +229,10 @@ void handleStartState()
     digitalWrite(STOPLED, HIGH);
   }
   if(digitalRead(START) == 0){
-    start_state = 1;
     digitalWrite(STARTLED, HIGH);
     digitalWrite(STOPLED, LOW);
+    delay(STARTDELAY);
+    start_state = 1;
   }
 }
 
@@ -320,6 +288,22 @@ void handleRead() {
     mySerial.print("The variable throttle has value: ");
     mySerial.println(steeringFactor);
   }
+  else if (variableToRead.equals("alpha")) {
+    mySerial.print("The variable alpha has value: ");
+    mySerial.println(alpha);
+  }
+  else if (variableToRead.equals("beta")) {
+    mySerial.print("The variable beta has value: ");
+    mySerial.println(beta);
+  }  
+  else if (variableToRead.equals("frontVal")) {
+    mySerial.print("The variable frontVal has value: ");
+    mySerial.println(frontVal);
+  }
+  else if (variableToRead.equals("backVal")) {
+    mySerial.print("The variable backVal has value: ");
+    mySerial.println(backVal);
+  }
   else {
       mySerial.println("Not a valid or handled variable");
   }
@@ -359,6 +343,18 @@ void handleChange() {
   }
   else if (variableToChange.equals("steeringFactor")) {
     steeringFactor = valueToChange.toInt();
+  }
+  else if (variableToChange.equals("alpha")) {
+    alpha = valueToChange.toInt();
+  }
+  else if (variableToChange.equals("beta")) {
+    beta = valueToChange.toInt();
+  }
+  else if (variableToChange.equals("backVal")) {
+    backVal = valueToChange.toInt();
+  }
+  else if (variableToChange.equals("frontVal")) {
+    frontVal = valueToChange.toInt();
   }
   else {
       mySerial.println("Not a valid or handled variable");
