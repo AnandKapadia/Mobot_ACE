@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<data>
+  <loop>false</loop>
+  <repeat_times>1</repeat_times>
+  <repeat_period>500</repeat_period>
+  <packets_list>
+    <packet name="packet_0">
+      <payload>28287772697465292974657374496E743D3D352B2B</payload>
+    </packet>
+    <packet name="packet_1">
+      <payload>28287772697465292974657374496E743D3D382B2B</payload>
+    </packet>
+    <packet name="packet_2">
+      <payload>282872656164292974657374496E742B2B</payload>
+    </packet>
+    <packet name="packet_3">
+      <payload>28287265616429297072696E7453656E736F72446174612B2B</payload>
+    </packet>
+    <packet name="packet_4">
+      <payload>2828777269746529296D616E75616C5F6D6F64655F73746174653D3D312B2B</payload>
+    </packet>
+    <packet name="packet_5">
+      <payload>2828777269746529296D616E75616C5F6D6F64655F73746174653D3D302B2B</payload>
+    </packet>
+    <packet name="packet_6">
+      <payload>28287772697465292953544152543D3D2B2B</payload>
+    </packet>
+    <packet name="packet_7">
+      <payload>28287772697465292953544F503D3D2B2B</payload>
+    </packet>
+    <packet name="packet_8">
+      <payload>2828777269746529297468726F74746C653D3D39302B2B</payload>
+    </packet>
+    <packet name="packet_9">
+      <payload>2828777269746529297374656572696E67466163746F723D3D36302B2B</payload>
+    </packet>
+    <packet name="packet_10">
+      <payload>2828777269746529297468726F74746C653D3D3130352B2B</payload>
+    </packet>
+  </packets_list>
+</data>
