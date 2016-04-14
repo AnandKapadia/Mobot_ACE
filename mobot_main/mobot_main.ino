@@ -47,7 +47,11 @@ int steering = 0;
 int start_state = 0;
 float prevFrontVal = 0;
 float prevBackVal = 0;
-
+float alpha = 10;
+float beta = 5;
+float frontVal = 0.0;
+float backVal = 0.0;
+  
 Adafruit_MCP23008 mcp_front, mcp_back;
 
 int back_pins[8] = {0,1,2,3,5,6,7,4};//{4, 7, 6, 5, 3, 2, 1, 0};
@@ -184,12 +188,11 @@ float getVal(int array[])
 
 void getLineFollowingValues()
 {
-  float alpha = 10;
-  float beta = 5;
+
   
   //this method should set steering and throttle values
-  float frontVal = getVal(front_values);
-  float backVal = getVal(back_values);
+  frontVal = getVal(front_values);
+  backVal = getVal(back_values);
   
   if(frontVal == -1) frontVal = prevFrontVal;
   else prevFrontVal = frontVal;
@@ -197,7 +200,7 @@ void getLineFollowingValues()
   else prevBackVal = backVal;
   
   //Alpha should be larger than beta
-  steering = int (90 + (frontVal * alpha) + ((frontVal - backVal) * beta));
+  steering = int (90 - (frontVal * alpha) - ((frontVal - backVal) * beta));
   
 }
 
@@ -285,6 +288,22 @@ void handleRead() {
     mySerial.print("The variable throttle has value: ");
     mySerial.println(steeringFactor);
   }
+  else if (variableToRead.equals("alpha")) {
+    mySerial.print("The variable alpha has value: ");
+    mySerial.println(alpha);
+  }
+  else if (variableToRead.equals("beta")) {
+    mySerial.print("The variable beta has value: ");
+    mySerial.println(beta);
+  }  
+  else if (variableToRead.equals("frontVal")) {
+    mySerial.print("The variable frontVal has value: ");
+    mySerial.println(frontVal);
+  }
+  else if (variableToRead.equals("backVal")) {
+    mySerial.print("The variable backVal has value: ");
+    mySerial.println(backVal);
+  }
   else {
       mySerial.println("Not a valid or handled variable");
   }
@@ -324,6 +343,18 @@ void handleChange() {
   }
   else if (variableToChange.equals("steeringFactor")) {
     steeringFactor = valueToChange.toInt();
+  }
+  else if (variableToChange.equals("alpha")) {
+    alpha = valueToChange.toInt();
+  }
+  else if (variableToChange.equals("beta")) {
+    beta = valueToChange.toInt();
+  }
+  else if (variableToChange.equals("backVal")) {
+    backVal = valueToChange.toInt();
+  }
+  else if (variableToChange.equals("frontVal")) {
+    frontVal = valueToChange.toInt();
   }
   else {
       mySerial.println("Not a valid or handled variable");
