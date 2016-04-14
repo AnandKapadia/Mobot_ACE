@@ -61,14 +61,14 @@ int back_values[8]  = {0, 0, 0, 0, 0, 0, 0, 0};
 void setup() {  
   initialize();
   setDefaults();
-  mySerial.println("Serial Communications Online");
+  //mySerial.println("Serial Communications Online");
 }
 
 void initialize()
 {
   mcp_front.begin(1);      // use default address 0
   mcp_back.begin(0);
-  Serial.begin(9600);
+  //Serial.begin(9600);
   mySerial.begin(9600);
   for(int i = 0; i < 8; i++)
   {
@@ -123,11 +123,12 @@ void loop() {
 
 void autonomous()
 {
-  
+  /*
   Serial.print(manual_mode_state);
   Serial.print("  ");
   Serial.print(start_state);
   Serial.print("  ");
+  */
   if(start_state == 1)
   {
     steering = count%180;
@@ -136,7 +137,7 @@ void autonomous()
   else{
     steering = 90;
   }
-  Serial.println(steering);
+  //Serial.println(steering);
   STEERING.write(180-steering);
   THROTTLE.write(180-steering);
   //delay(100);
@@ -156,7 +157,7 @@ void lineFollowing()
   }
   else
   {
-    Serial.println("stopped state");
+    //Serial.println("stopped state");
     STEERING.write(90);
     THROTTLE.write(90);
   }
@@ -220,19 +221,19 @@ void getLineFollowingValues()
   
   //Go straight
   if (centered(frontMin, frontMax) && centered(backMin, backMax)){
-    Serial.println("centered");
+    //Serial.println("centered");
     steering = 90;
   }
   else if (frontMin < backMin) { //turn left
-    Serial.println("turn l");
+    //Serial.println("turn l");
     steering = 90 - ((backMax - frontMin) * steeringFactor);
   }
   else if (frontMax > backMax) { //turn right     
-    Serial.println("turn r");
+    //Serial.println("turn r");
     steering = 90 + ((frontMax - backMin) * steeringFactor);
   }
   else{
-    Serial.println("--");
+    //Serial.println("--");
     steering = 90;
   }
   
