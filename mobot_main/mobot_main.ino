@@ -45,10 +45,8 @@ int manual_mode_state = 0;
 int throttle = 0;
 int steering = 0;
 int start_state = 0;
-int prevFrontMax = 0;
-int prevBackMax = 0;
-int prevFrontMin = 0;
-int prevBackMin = 0;
+float prevFrontVal = 0;
+float prevBackVal = 0;
 
 Adafruit_MCP23008 mcp_front, mcp_back;
 
@@ -163,79 +161,43 @@ void lineFollowing()
   }
 }
 
-int getMin(int array[])
-{
-  for(int i = 0; i <= 7; i++) {
-     if (array[i] == 1) {
-         return i;
-     }
-  }
-  return -1;
-}
 
-int getMax(int array[])
+float getVal(int array[])
 {
-  int Max = -1;
+  float val = 0;
+  float numVal = 0;
   for(int i = 0; i <= 7; i++) {
-     if (array[i] == 1) {
-         Max = i;
-     }
+    if (array[i] == 1) {
+      val = val + (float) i;
+      numVal = numVal + (float) 1;
+    }
   }
-  return Max;
+  
+  if (numVal == 0) {
+    return -1;
+  }
+  else {
+    return (val / numVal) - 3.5;
+  }
 }
-
-int centered(int Min, int Max)
-{
-   return (3 <= Min && Min <= 4 &&
-          3 <= Max && Max <= 4);
-}
+  
 
 void getLineFollowingValues()
 {
+  float alpha = 10;
+  float beta = 5;
+  
   //this method should set steering and throttle values
-  int frontMax = getMax(front_values);
-  int backMax = getMax(back_values);
+  float frontVal = getVal(front_values);
+  float backVal = getVal(back_values);
   
-  int frontMin = getMin(front_values);
-  int backMin = getMin(back_values);
+  if(frontVal == -1) frontVal = prevFrontVal;
+  else prevFrontVal = frontVal;
+  if(backVal == -1) backVal = prevBackVal;
+  else prevBackVal = backVal;
   
-  /*
-  Serial.print("front(");
-  Serial.print(frontMax);
-  Serial.print(",");
-  Serial.print(frontMin);
-  Serial.print(") back(");
-  Serial.print(backMax);
-  Serial.print(",");
-  Serial.print(backMin);
-  Serial.println(")");
-  */
-  if(frontMax == -1) frontMax = prevFrontMax;
-  else prevFrontMax = frontMax;
-  if(backMax == -1) backMax = prevBackMax;
-  else prevBackMax = backMax;
-  if(frontMin == -1) frontMin = prevFrontMin;
-  else prevFrontMin = frontMin;
-  if(backMin == -1) backMin = prevBackMin;
-  else prevBackMin = backMin;
-  
-  //Go straight
-  if (centered(frontMin, frontMax) && centered(backMin, backMax)){
-    //Serial.println("centered");
-    steering = 90;
-  }
-  else if (frontMin < backMin) { //turn left
-    //Serial.println("turn l");
-    steering = 90 - ((backMax - frontMin) * steeringFactor);
-  }
-  else if (frontMax > backMax) { //turn right     
-    //Serial.println("turn r");
-    steering = 90 + ((frontMax - backMin) * steeringFactor);
-  }
-  else{
-    //Serial.println("--");
-    steering = 90;
-  }
+  //Alpha should be larger than beta
+  steering = int (90 + (frontVal * alpha) + ((frontVal - backVal) * beta));
   
 }
 
