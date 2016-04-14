@@ -52,6 +52,7 @@ float alpha = 10;
 float beta = 5;
 float frontVal = 0.0;
 float backVal = 0.0;
+float throttleFactor = 2.0;
   
 Adafruit_MCP23008 mcp_front, mcp_back;
 
@@ -86,7 +87,7 @@ void initialize()
   pinMode(STOPLED, OUTPUT);
   pinMode(STARTLED, OUTPUT);
   STEERING.attach(STEERINGPIN, 1000, 2000);
-  THROTTLE.attach(THROTTLEPIN, 520, 2370);
+  THROTTLE.attach(THROTTLEPIN, 1000, 2000);
   pinMode(13, OUTPUT);  // use the p13 LED as debugging
 }
 
@@ -152,9 +153,9 @@ void lineFollowing()
   {
     getLineFollowingValues();
     if(steering > 180) steering = 180;
-    if(throttle > 180) throttle = 180;
+    if(throttleNew > 180) throttleNew = 180;
     if(steering < 0) steering = 0;
-    if(throttle < 0) throttle = 0;
+    if(throttleNew < 0) throttleNew = 0;
     STEERING.write(steering);
     THROTTLE.write(throttleNew);
   }
@@ -189,8 +190,6 @@ float getVal(int array[])
 
 void getLineFollowingValues()
 {
-
-  
   //this method should set steering and throttle values
   frontVal = getVal(front_values);
   backVal = getVal(back_values);
@@ -202,8 +201,7 @@ void getLineFollowingValues()
   
   //Alpha should be larger than beta
   steering = int (90 - (frontVal * alpha) - ((frontVal - backVal) * beta));
-  throttleNew = throttle + 
-  
+  throttleNew = throttle - (int) (throttleFactor * ((abs(steering - 90)) / 90));
 }
 
 void getSensorValues()
@@ -227,15 +225,18 @@ void handleStartState()
 {
   if(digitalRead(STOP) == 0){
     start_state = 0;
+    manual_mode_state = 1;
     digitalWrite(STARTLED, LOW);
     digitalWrite(STOPLED, HIGH);
   }
   if(digitalRead(START) == 0){
     digitalWrite(STARTLED, HIGH);
     digitalWrite(STOPLED, LOW);
+    manual_mode_state = 0;
     delay(STARTDELAY);
     start_state = 1;
   }
+  digitalWrite(MANUAL_MODE, manual_mode_state);
 }
 
 void printSensorData()
@@ -306,6 +307,10 @@ void handleRead() {
     mySerial.print("The variable backVal has value: ");
     mySerial.println(backVal);
   }
+  else if (variableToRead.equals("throttleFactor")) {
+    mySerial.print("The variable throttleFactor has value: ");
+    mySerial.println(throttleFactor);
+  }
   else {
       mySerial.println("Not a valid or handled variable");
   }
@@ -327,14 +332,19 @@ void handleChange() {
   }
   else if (variableToChange.equals("STOP")) {
     start_state = 0;
+    manual_mode_state = 1;
     digitalWrite(STARTLED, LOW);
-    digitalWrite(STOPLED, HIGH);
+    digitalWrite(STOPLED, HIGH);  
+    digitalWrite(MANUAL_MODE, manual_mode_state);
     variableToChange = "start_state";
   }
   else if (variableToChange.equals("START")) {
-    start_state = 1;
+    manual_mode_state = 0;
     digitalWrite(STARTLED, HIGH);
     digitalWrite(STOPLED, LOW);
+    digitalWrite(MANUAL_MODE, manual_mode_state);
+    delay(100);
+    start_state = 1;
     variableToChange = "start_state";
   }
   else if (variableToChange.equals("steering")) {
@@ -347,16 +357,19 @@ void handleChange() {
     steeringFactor = valueToChange.toInt();
   }
   else if (variableToChange.equals("alpha")) {
-    alpha = valueToChange.toInt();
+    alpha = valueToChange.toFloat();
   }
   else if (variableToChange.equals("beta")) {
-    beta = valueToChange.toInt();
+    beta = valueToChange.toFloat();
   }
   else if (variableToChange.equals("backVal")) {
     backVal = valueToChange.toInt();
   }
   else if (variableToChange.equals("frontVal")) {
     frontVal = valueToChange.toInt();
+  }
+  else if (variableToChange.equals("throttleFactor")) {
+    throttleFactor = valueToChange.toFloat(); 
   }
   else {
       mySerial.println("Not a valid or handled variable");
