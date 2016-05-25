@@ -1,5 +1,16 @@
 # Mobot_ACE
 
+##Summary
+This robot worked exceptionally well at night with the back panel of IR sensors proving a useful correcting mechanism for the front IR panels. The hills on the outdoor linefollowing course was also handled well after tuning of parameters, and the speed of the robot was relatively fast. Hacking the TRAXIS RC car with an arduino was a very managable task and a high level of control was aquired from the chassis. 
+
+The disadvantage to this robot design was IR sensitivity in direct sunlight. Due to non-optimal choice in IR modules and inability to create a robust shroud that could handle the bumps and incline of the course, the sensors were often washed out in the sun. Error correcting code was not sufficent to overcome this issue. 
+
+Future suggestions include adding a camera to the existing IR-based algorithm for more robust linefollowing, and looking into using cross correlation to improve IR sensor readings. 
+
+![alt text](https://github.com/AnandKapadia/Mobot_ACE/mobot1.jpg)
+![alt text](https://github.com/AnandKapadia/Mobot_ACE/mobot2.jpg)
+
+
 ## Bill of Materials
 
 The Bill of Materials (BOM) shall be updated with whatever parts
